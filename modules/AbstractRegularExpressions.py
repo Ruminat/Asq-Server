@@ -227,6 +227,8 @@ class Automata:
         if (newState.transition.nextState != None):
           self.currentStates.add(newState)
         elif (len(newState.patternsStack) == 0):
+          self.finalStatesl.add(newState)
+        else:
           while True:
             if (len(newState.patternsStack) == 0):
               self.finalStates.add(newState)

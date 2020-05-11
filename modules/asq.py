@@ -141,8 +141,9 @@ class StructureParser:
     return result
 
 structureParser = StructureParser(dbObjects, dbObjectsLemmas)
-print(structureParser.getDbObjectName(PatternToken(column, Token(text='сотрудников', lemma='сотрудник'))))
-print(structureParser.parseLogicalConnector(PatternToken(logicalConnector, Token(text='или', lemma='или'))))
+
+# print(structureParser.getDbObjectName(PatternToken(column, Token(text='сотрудников', lemma='сотрудник'))))
+# print(structureParser.parseLogicalConnector(PatternToken(logicalConnector, Token(text='или', lemma='или'))))
 
 # def parseStructure(structure):
 #   if (structure.name == '')
@@ -180,7 +181,7 @@ def parse(text):
       tokenType = 'text'
 
     token = Token(text, tokenType, lemma, grammar, len(tokens))
-    print(token)
+    # print(token)
     for p in patterns: p.feedToken(token)
     tokens.append(token)
 
@@ -215,8 +216,8 @@ def parse(text):
   structures = [opponent.data for opponent in opponents if opponent.alive]
   for s in structures:
     printStucture(s)
-    if (s.name == 'whereExpr'):
-      print(structureParser.parseWhereExpr(s))
+    # if (s.name == 'whereExpr'):
+    #   print(structureParser.parseWhereExpr(s))
     print('\n\n')
 
   pseudoCode = f'Parsed your text "{text}"'
@@ -231,7 +232,7 @@ def analyze(text):
 
 # text = 'выведи сотрудников, отделы и страны'
 # text = 'выведи фамилию, имя и зарплату'
-text = 'Вывести имя, фамилию и зарплату сотрудников с зарплатой больше 10000 и имя равно фамилии'
+text = 'Вывести имя, фамилию и зарплату сотрудников с зарплатой больше 10000'
 parse(text)
 
 # print(timeit.timeit("parse('фамилия равна имени или зарплата > 10000')", setup="from __main__ import parse", number=5))
