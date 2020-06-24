@@ -1,12 +1,16 @@
-# Abstract Regular Expressions.
-# They are like regular expressions, but can work with any kinds of objects,
-# not just characters as in regex.
-# This code is based on Mark-Jason Dominus's article «How Regexes Work»,
-# you can find it here: https://perl.plover.com/Regex/article.html
+"""
+  AbstractRegularExpressions.py
+  
+  Abstract Regular Expressions.
+  They are like regular expressions, but can work with any kinds of objects,
+  not just characters as in regex.
+  This code is based on Mark-Jason Dominus's article «How Regexes Work»,
+  you can find it here: https://perl.plover.com/Regex/article.html
+"""
 
 # NFA - Nondeterministic Finite Automata (machine).
 
-# Used for defining custuom operators.
+# Used for defining custom operators.
 # http://code.activestate.com/recipes/384122/
 class Infix:
   def __init__(self, function):
@@ -107,7 +111,7 @@ def statesIterator(state, passedStates = set()):
       for s in statesIterator(transition.nextState, passedStates):
         yield s
 
-# Connects two machine into one (replaces finish states of machineA with start states of machineB).
+# Connects two machines into one (replaces finish states of machineA with start states of machineB).
 def connectMachines(machineA, machineB):
   endTransitions = []
   for state in statesIterator(machineA, set()):
@@ -135,13 +139,15 @@ class Pattern:
   def __str__(self):
     return self.name
 
+# Structure stores tokens of a found pattern.
 class Structure:
   def __init__(self, name, elements=None):
     self.name = name
     self.elements = elements if elements != None else []
   def __str__(self):
-    return f' --- {self.name} --- \n{[str(el) for el in self.elements]}'
+    return f' --- {self.name} --- {[str(el) for el in self.elements]}'
 
+# Class for storing a token and pattern which found this token.
 class PatternToken:
   def __init__(self, pattern, token):
     self.pattern = pattern
@@ -149,6 +155,7 @@ class PatternToken:
   def __str__(self):
     return f'{self.pattern}: {self.token.text}'
 
+# Used for storing linked matched tokens.
 class CurrentState:
   def __init__(self, token, transition=None, previousState=None, patternsStack=[]):
     self.transition = transition
@@ -158,6 +165,7 @@ class CurrentState:
   def __str__(self):
     t = self.token.text if self.token != None else ''
     return f'== [{self.transition.pattern.name} ({len(self.patternsStack)}): {t}]\n{self.previousState}'
+  # Connects linked CurrentStates into one Structure.
   def connect(self, name):
     state = self
     structuresStack = []
@@ -166,13 +174,18 @@ class CurrentState:
     while True:
       token = state.token
       transition = state.transition
+      # Pattern
       if (isinstance(transition.pattern, Pattern)):
-        if (len(structuresStack) == 0):
+        if (len(structuresStack) == 0 or structuresStack[-1].name != transition.pattern.name):
           structuresStack.append(Structure(transition.pattern.name))
         else:
           structure = structuresStack.pop()
-          structure.elements = structure.elements[::-1]
-          result.append(structure)
+          structure.elements = structure.elements[::-1] # reverse the elements.
+          if (len(structuresStack) == 0):
+            result.append(structure)
+          else:
+            structuresStack[-1].elements.append(structure)
+      # Primitive
       elif (isinstance(transition.pattern, Primitive)):
         indexes.append(token.index)
         if (len(structuresStack) == 0):
@@ -210,14 +223,15 @@ class Automata:
       else:
         newState = previousState
         while True:
-          if (len(newState.patternsStack) == 0):
-            self.finalStates.add(newState)
-            break
           patternsStack = list(newState.patternsStack)
           patternState = patternsStack.pop()
           newState = CurrentState(None, patternState.transition, newState, patternsStack)
           if (newState.transition.nextState != None):
-            self.processTransition(newState.transition, token, newState)
+            for t in newState.transition.nextState.transitions:
+              self.processTransition(t, token, newState)
+            break
+          if (len(newState.patternsStack) == 0):
+            self.finalStates.add(newState)
             break
     # Primitive
     elif (isinstance(transition.pattern, Primitive)):
@@ -227,17 +241,17 @@ class Automata:
         if (newState.transition.nextState != None):
           self.currentStates.add(newState)
         elif (len(newState.patternsStack) == 0):
-          self.finalStatesl.add(newState)
+          self.finalStates.add(newState)
         else:
           while True:
-            if (len(newState.patternsStack) == 0):
-              self.finalStates.add(newState)
-              break
             patternsStack = list(newState.patternsStack)
             patternState = patternsStack.pop()
             newState = CurrentState(None, patternState.transition, newState, patternsStack)
             if (newState.transition.nextState != None):
               self.currentStates.add(newState)
+              break
+            if (len(newState.patternsStack) == 0):
+              self.finalStates.add(newState)
               break
     # Pattern
     elif (isinstance(transition.pattern, Pattern)):
@@ -254,7 +268,6 @@ def printMachine(machine):
     for t in state.transitions:
       print(padding*' ' + f'{state}: --{t.pattern}->{t.nextState}')
     padding += 1
-
 
 # Pretty-print a pattern.
 def printPattern(pattern):
