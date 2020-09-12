@@ -5,3 +5,7 @@ The server file is modules/server.py, it can be started with the following comma
 ```bash
 waitress-serve --port=8000 server:app
 ```
+
+The repository for the app can be found [here](https://github.com/Ruminat/Asq-App).
+
+The pdf document can be found [here](https://elib.spbstu.ru/dl/3/2020/vr/vr20-2586.pdf/info).
